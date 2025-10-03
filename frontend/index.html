@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Prompt Router Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #333;
+            --container-bg: white;
+            --border-color: #e0e0e0;
+            --header-color: #1c1e21;
+            --placeholder-color: #888;
+            --table-header-bg: #f8f9fa;
+            --table-border-color: #ddd;
+            --button-bg: #1877f2;
+            --button-hover-bg: #166fe5;
+        }
+
+        body.dark-mode {
+            --bg-color: #1c1e21;
+            --text-color: #e4e6eb;
+            --container-bg: #242526;
+            --border-color: #3a3b3c;
+            --header-color: #e4e6eb;
+            --placeholder-color: #b0b3b8;
+            --table-header-bg: #3a3b3c;
+            --table-border-color: #444;
+            --button-bg: #3a3b3c;
+            --button-hover-bg: #4f5051;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--container-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--header-color);
+        }
+
+        .theme-switcher {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        #theme-toggle {
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #theme-toggle:hover {
+            background: var(--button-hover-bg);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            min-height: 120px;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+
+        button#submit-btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--button-bg);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button#submit-btn:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #1877f2;
+            animation: spin 1s ease infinite;
+            display: none;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-card h3 {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .result-card .placeholder {
+            color: var(--placeholder-color);
+            font-style: italic;
+        }
+
+        .classification-card.light {
+            background-color: #e9f5e9;
+            border-color: #a7d7a7;
+            color: #155724;
+        }
+
+        .classification-card.heavy {
+            background-color: #fdeeee;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        body.dark-mode .classification-card.light {
+            background-color: #2a3a2e;
+            border-color: #4a7c59;
+            color: #a7d7a7;
+        }
+
+        body.dark-mode .classification-card.heavy {
+            background-color: #4d3134;
+            border-color: #8c5059;
+            color: #f5c6cb;
+        }
+
+        .classification-card p {
+            font-size: 1.1rem;
+        }
+
+        .classification-card .label {
+            font-weight: bold;
+        }
+
+        .classification-card .light .label { color: #28a745; }
+        .classification-card .heavy .label { color: #dc3545; }
+
+        #history {
+            margin-top: 3rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--table-border-color);
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+        }
+
+        .history-prompt {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switcher">
+        <button id="theme-toggle">Theme Switcher</button>
+    </div>
+    <div class="container">
+        <h1>Multi-Agent Routing Dashboard</h1>
+        <div class="input-section">
+            <textarea id="prompt-input" placeholder="Enter your prompt..."></textarea>
+            <button id="submit-btn">Classify and Route</button>
+            <div id="spinner" class="spinner"></div>
+        </div>
+
+        <div class="results-grid">
+            <div id="classification-card" class="result-card classification-card">
+                <h3>Routing Decision</h3>
+                <p>Route: <span id="classification" class="label">N/A</span></p>
+                <p>Confidence: <span id="confidence">N/A</span></p>
+                <p>Time Taken: <span id="time-taken">N/A</span></p>
+            </div>
+            <div class="result-card">
+                <h3>Light Agent</h3>
+                <p id="light-agent-response" class="placeholder">Waiting for response...</p>
+            </div>
+            <div class="result-card">
+                <h3>Heavy Agent</h3>
+                <p id="heavy-agent-response" class="placeholder">Waiting for response...</p>
+            </div>
+        </div>
+
+        <div id="history">
+            <h2>Query History</h2>
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Prompt</th>
+                        <th>Route</th>
+                        <th>Confidence</th>
+                        <th>Light Agent</th>
+                        <th>Heavy Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Check for saved theme in local storage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+        }
+
+        const submitBtn = document.getElementById('submit-btn');
+        const promptInput = document.getElementById('prompt-input');
+        const classificationCard = document.getElementById('classification-card');
+        const classificationSpan = document.getElementById('classification');
+        const confidenceSpan = document.getElementById('confidence');
+        const timeTakenSpan = document.getElementById('time-taken');
+        const lightAgentResponse = document.getElementById('light-agent-response');
+        const heavyAgentResponse = document.getElementById('heavy-agent-response');
+        const historyTableBody = document.querySelector('#history-table tbody');
+        const spinner = document.getElementById('spinner');
+
+        submitBtn.addEventListener('click', async () => {
+            const promptText = promptInput.value.trim();
+            if (!promptText) {
+                alert('Please enter a prompt.');
+                return;
+            }
+
+            spinner.style.display = 'block';
+            submitBtn.disabled = true;
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch('http://localhost:8000/classify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: promptText }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const endTime = performance.now();
+                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+
+                // Update main display
+                classificationSpan.textContent = data.label;
+                confidenceSpan.textContent = (data.confidence * 100).toFixed(2) + '%';
+                timeTakenSpan.textContent = `${timeTaken}s`;
+                classificationCard.className = 'result-card classification-card ' + data.label;
+
+                // Update agent placeholders
+                if (data.label === 'light') {
+                    lightAgentResponse.textContent = `Agent processed: "${promptText}"`;
+                    lightAgentResponse.classList.remove('placeholder');
+                    heavyAgentResponse.textContent = 'Waiting for response...';
+                    heavyAgentResponse.classList.add('placeholder');
+                } else {
+                    heavyAgentResponse.textContent = `Agent processed: "${promptText}"`;
+                    heavyAgentResponse.classList.remove('placeholder');
+                    lightAgentResponse.textContent = 'Waiting for response...';
+                    lightAgentResponse.classList.add('placeholder');
+                }
+
+                // Add to history
+                const newRow = historyTableBody.insertRow(0);
+                newRow.innerHTML = `
+                    <td class="history-prompt" title="${promptText}">${promptText}</td>
+                    <td>${data.label}</td>
+                    <td>${(data.confidence * 100).toFixed(2) + '%'}</td>
+                    <td class="placeholder">Waiting...</td>
+                    <td class="placeholder">Waiting...</td>
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while classifying the prompt.');
+            } finally {
+                spinner.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

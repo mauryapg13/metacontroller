@@ -1,0 +1,7 @@
+# Ignore the large model files
+models/distilbert-prompt-classifier/
+
+# Ignore sensitive files
+metacontroller-backup
+metacontroller.pub
+metacontroller
