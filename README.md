@@ -30,6 +30,7 @@ A DistilBERT-based classifier to route lightweight and heavyweight prompts to di
 ### 1. Install Dependencies
 
 There are two `requirements.txt` files. One for the core project (training scripts) and one for the backend.
+The dependencies have been pinned to specific versions to ensure compatibility.
 
 **Core dependencies:**
 ```bash
@@ -44,12 +45,16 @@ pip install -r backend/requirements.txt
 ### 2. Run the Backend
 
 The backend is a FastAPI application that serves the trained model.
+You can run it directly with Python:
 
 ```bash
-cd backend
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+python3 backend/app.py
 ```
-*Note: Depending on your Python environment, you might need to use the full path to `uvicorn`.*
+
+The server will start on `http://0.0.0.0:8000`.
+The first time you run it, it will take some time to download and cache the model.
+
+You can check the status of the model loading by accessing the `/health` endpoint: `http://localhost:8000/health`
 
 ### 3. Use the Frontend
 

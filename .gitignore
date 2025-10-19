@@ -5,3 +5,9 @@ models/distilbert-prompt-classifier/
 metacontroller-backup
 metacontroller.pub
 metacontroller
+
+# Ignore system files
+.DS_Store
+
+# Ignore log files
+server.log
